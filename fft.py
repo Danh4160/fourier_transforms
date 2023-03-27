@@ -1,11 +1,38 @@
 import sys
-import numpy
+import numpy as np
 import matplotlib as plt
+import math
+
+
+
+
+def dft(vector):
+    N = len(vector)
+    n = np.arange(N)
+    k = np.reshape(n, (N, 1))
+    exp = (-1j * 2 * np.pi / N) * k * n
+    c = np.exp(exp)
+    return np.dot(vector, c)
+
+def dft_inverse(vector):
+    N = len(vector)
+    n = np.arange(N)
+    k = np.reshape(n, (N, 1))
+    exp = (1j * 2 * np.pi / N) * k * n
+    c = np.exp(exp)
+    return (1/N) * np.dot(vector, c)
 
 
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
+    # Testing
+    X = np.arange(3)
+    dft_vector = dft(X)
+    dft_inverse_vector = dft_inverse(dft(X))
+    print(X)
+    print(dft_vector)
+    print(dft_inverse_vector)
     return None
 
 
