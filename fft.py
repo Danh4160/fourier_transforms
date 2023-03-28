@@ -143,12 +143,6 @@ def twoDftNormal(img):
 
     return resultVector
    
- #Python program to find
-#smallest power of 2
-#greater than or equal to n
-import math
-
-
 
 # Compute power of two greater than or equal to `n`
 def findNextPowerOf2(n):
@@ -170,38 +164,23 @@ def findNextPowerOf2(n):
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
-
-    X = [1, 2, 3, 4]
-    print(f"Array: {X}")
-    # Testing DFT
-    dft_vector = dft(X)
-    dft_inverse_vector = dft_inverse(dft_vector)
-    print(f"DFT result {dft_vector}")
-
-    # Testing Inverse DFT
-    print(f"Inverse DFT result {dft_inverse_vector}")
-
-    # Testing FFT
-    #X = [1,2,3,4,5,6,7,0] 
-    #fft_vector = fft_driver(1, X)
-    #print(fft_vector)
     img2 = twoDftNormal(img)
-    # Output img with window name as 'image'
-    #np.abs(im_fft), norm=LogNorm(vmin=5)
-    #cv2.imshow('image', np.abs(img2), norm =LogNorm(vmin=5))
    
     plt.figure()
     plt.imshow( np.abs(img2), norm =LogNorm(vmin=5))
     plt.colorbar()
     plt.title('Fourier transform')
     plt.show()
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
     return None
 
 def second_mode():
     # Denoise an image by applying an FFT
     print("Second mode")
+
+    im_vector = plt.imread()
+    # Use FFT
+    fft_vector = fft(1, )
+
 
     im_vector = plt.imread()
     # Use FFT
