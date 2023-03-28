@@ -1,9 +1,16 @@
 import sys
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import math
+import cv2
+import PIL
+from matplotlib.colors import LogNorm
 
 
+img = plt.imread('images\moonlanding.png').astype(float)
+ 
+globalM = 0
+globalN = 0
 
 
 def dft(vector):
@@ -49,6 +56,100 @@ def fft(threshold, vector, l):
         l = np.concatenate([l, l_even, l_odd])
         return l
 
+def twoDftNormal(img):
+    imgvector = np.asarray(img)
+    imgvectorshape = imgvector.shape
+    M = imgvectorshape[0]
+    N = imgvectorshape[1]
+    mpower = findNextPowerOf2(M)
+    npower = findNextPowerOf2(N)
+    
+    
+    mPadd = mpower - M
+    nPadd = npower - N
+    
+    
+    realM = M + mPadd
+    realN = N + nPadd
+
+    globalM = M
+    globalN = N
+   # imgvector = np.pad(imgvector, pad_width=((0, mPadd), (0, nPadd)))
+   # resultVector = np.zeros((realM, realN), dtype=complex)
+
+    #imgvector = np.pad(imgvector, pad_width=((0, mPadd), (0, nPadd)))
+    resultVector = np.zeros((M, N), dtype=complex)
+
+    #print(resultVector.shape)
+    # print(imgvector[0])
+
+    
+    # for m in range(0,realM):
+    #     print(imgvector.shape)
+    #     print(resultVector.shape)
+    #     print(m)
+    #     resultVector[m] = dft(imgvector[m])
+    #     print(resultVector[m])
+
+    # for n in range(0,realN):
+    #     print(n)
+    #     resultVector[:,n] = dft(resultVector[:,N])
+    #     print(resultVector[:,n])
+
+    for n in range(0,N):
+         print(n)
+         resultVector[:,n] = dft(imgvector[:,n])
+         print(resultVector[:,n])
+
+    for m in range(0,M):
+         print(m)
+         resultVector[m] = dft(resultVector[m])
+         print(resultVector[m])
+
+
+    
+
+    # for n in range(0,realN):
+    #      print(n)
+    #      resultVector[:,n] = dft(imgvector[:,n])
+    #      print(resultVector[:,n])
+
+    # for m in range(0,realM):
+    #      print(m)
+    #      resultVector[m] = dft(resultVector[m])
+    #      print(resultVector[m])
+
+    # for m in range(realM):
+    #     resultVector[:m] = dft(resultVector[:m])
+    #     print(resultVector[:m])
+
+    return resultVector
+   
+ #Python program to find
+#smallest power of 2
+#greater than or equal to n
+import math
+
+
+
+# Compute power of two greater than or equal to `n`
+def findNextPowerOf2(n):
+ 
+    # decrement `n` (to handle cases when `n` itself
+    # is a power of 2)
+    n = n - 1
+ 
+    # do till only one bit is left
+    while n & n - 1:
+        n = n & n - 1       # unset rightmost bit
+ 
+    # `n` is now a power of two (less than `n`)
+ 
+    # return next power of 2
+    return n << 1
+
+
+
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
@@ -61,9 +162,21 @@ def default_mode():
     # print(dft_inverse_vector)
 
     # Testing FFT
-    X = [1,2,3,4,5,6,7,0] 
-    fft_vector = fft_driver(1, X)
-    print(fft_vector)
+    #X = [1,2,3,4,5,6,7,0] 
+    #fft_vector = fft_driver(1, X)
+    #print(fft_vector)
+    img2 = twoDftNormal(img)
+    # Output img with window name as 'image'
+    #np.abs(im_fft), norm=LogNorm(vmin=5)
+    #cv2.imshow('image', np.abs(img2), norm =LogNorm(vmin=5))
+   
+    plt.figure()
+    plt.imshow( np.abs(img2), norm =LogNorm(vmin=5))
+    plt.colorbar()
+    plt.title('Fourier transform')
+    plt.show()
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
     return None
 
 def second_mode():
