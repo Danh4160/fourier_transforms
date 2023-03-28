@@ -14,6 +14,7 @@ def dft(vector):
     c = np.exp(exp)
     return np.dot(vector, c)
 
+
 def dft_inverse(vector):
     N = len(vector)
     n = np.arange(N)
@@ -23,18 +24,47 @@ def dft_inverse(vector):
     return (1/N) * np.dot(vector, c)
 
 
+def fft_driver(threshold, vector):
+    res = fft(threshold, vector, [])
+    return res
+
+def fft(threshold, vector, l):
+    # Divide and conquer
+    N = len(vector)
+    if threshold == N:
+        x = dft(vector)
+        return x
+    else:
+        # Get the even and odd index numbers
+        vector_even, vector_odd = vector[::2], vector[1::2]
+        vector_even_trans = fft(threshold, vector_even, l)
+        vector_odd_trans = fft(threshold, vector_odd, l)
+
+        k = np.arange(N)
+        exp = (-1j * 2 * np.pi / N) * k
+        c = np.exp(exp)
+        
+        l_even = vector_even_trans+c[:int(N/2)]*vector_odd_trans
+        l_odd = vector_even_trans+c[int(N/2):]*vector_odd_trans
+        l = np.concatenate([l, l_even, l_odd])
+        return l
+
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
     # Testing
-    X = np.arange(3)
-    dft_vector = dft(X)
-    dft_inverse_vector = dft_inverse(dft(X))
-    print(X)
-    print(dft_vector)
-    print(dft_inverse_vector)
-    return None
+    # X = [1,2,3,4,5,6,7,0] 
+    # dft_vector = dft(X)
+    # dft_inverse_vector = dft_inverse(dft(X))
+    # print(X)
+    # print(dft_vector)
+    # print(dft_inverse_vector)
 
+    # Testing FFT
+    X = [1,2,3,4,5,6,7,0] 
+    fft_vector = fft_driver(1, X)
+    print(fft_vector)
+    return None
 
 def second_mode():
     # Denoise an image by applying an FFT
