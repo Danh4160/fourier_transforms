@@ -24,9 +24,27 @@ def dft_inverse(vector):
     return (1/N) * np.dot(vector, c)
 
 
-def fft_driver(threshold, vector):
-    res = fft(threshold, vector, [])
-    return res
+def fft_inverse(threshold, vector, l):
+    # Divide and conquer
+    N = len(vector)
+    if threshold == N:
+        x = dft_inverse(vector)
+        return x
+    else:
+        # Get the even and odd index numbers
+        vector_even, vector_odd = vector[::2], vector[1::2]
+        vector_even_trans = fft(threshold, vector_even, l)
+        vector_odd_trans = fft(threshold, vector_odd, l)
+
+        k = np.arange(N)
+        exp = (1j * 2 * np.pi / N) * k
+        c = np.exp(exp)
+        
+        l_even = (1/N) * (vector_even_trans+c[:int(N/2)]*vector_odd_trans)
+        l_odd = (1/N) * (vector_even_trans+c[int(N/2):]*vector_odd_trans)
+        l = np.concatenate([l, l_even, l_odd])
+        return l
+
 
 def fft(threshold, vector, l):
     # Divide and conquer
@@ -48,27 +66,42 @@ def fft(threshold, vector, l):
         l_odd = vector_even_trans+c[int(N/2):]*vector_odd_trans
         l = np.concatenate([l, l_even, l_odd])
         return l
+    
 
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
-    # Testing
-    # X = [1,2,3,4,5,6,7,0] 
-    # dft_vector = dft(X)
-    # dft_inverse_vector = dft_inverse(dft(X))
-    # print(X)
-    # print(dft_vector)
-    # print(dft_inverse_vector)
+
+    X = [1, 2, 3, 4]
+    print(f"Array: {X}")
+    # Testing DFT
+    dft_vector = dft(X)
+    dft_inverse_vector = dft_inverse(dft_vector)
+    print(f"DFT result {dft_vector}")
+
+    # Testing Inverse DFT
+    print(f"Inverse DFT result {dft_inverse_vector}")
 
     # Testing FFT
-    X = [1,2,3,4,5,6,7,0] 
-    fft_vector = fft_driver(1, X)
-    print(fft_vector)
+    fft_vector = fft(1, X, [])
+    print(f"FFT result {fft_vector}")
+
+    # Testing Inverse FFT
+    print(f"Inverse FFT result {fft_inverse(1, fft_vector, [])}")
+
+    # Testing Inverse FFT from Numpy
+    print(f"Inverse FFT result from Numpy {np.fft.ifft(fft_vector)}")
+
     return None
 
 def second_mode():
     # Denoise an image by applying an FFT
     print("Second mode")
+
+    im_vector = plt.imread()
+    # Use FFT
+    fft_vector = fft(1, )
+
     return None
 
 def third_mode():
