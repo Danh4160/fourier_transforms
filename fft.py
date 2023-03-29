@@ -8,10 +8,7 @@ from matplotlib.colors import LogNorm
 
 
 img = plt.imread('images\moonlanding.png').astype(float)
- 
-globalM = 0
-globalN = 0
-
+originalM, originalN = np.asarray(img).shape
 
 def dft(vector):
     N = len(vector)
@@ -20,6 +17,15 @@ def dft(vector):
     exp = (-1j * 2 * np.pi / N) * k * n
     c = np.exp(exp)
     return np.dot(vector, c)
+
+
+def dft_inverse_fft(vector): 
+    N = len(vector)
+    n = np.arange(N)
+    k = np.reshape(n, (N, 1))
+    exp = (1j * 2 * np.pi / (N/2)) * k * n
+    c = np.exp(exp)
+    return (1/N) * np.dot(vector, c)
 
 
 def dft_inverse(vector):
@@ -31,106 +37,93 @@ def dft_inverse(vector):
     return (1/N) * np.dot(vector, c)
 
 
-def fft_driver(threshold, vector):
-    res = fft(threshold, vector, [])
-    return res
-
-def fft(threshold, vector, l):
+def fft_inverse(vector):
     # Divide and conquer
     N = len(vector)
-    if threshold == N:
+    if N == 1:
+        x = dft_inverse_fft(vector)
+        # print(f"Called dft inverse, vector is {x}")
+        return x
+    else:
+        # Get the even and odd index numbers
+        vector_even, vector_odd = vector[::2], vector[1::2]
+        vector_even_trans = fft_inverse(vector_even)
+        vector_odd_trans = fft_inverse(vector_odd)
+
+        k = np.arange(N)
+        exp = (1j * 2 * np.pi / N) * k
+        c = np.exp(exp)
+        # print(f"N {N} used")
+        # print(f"vector even {vector_even_trans}")
+        # print(f"vector odd {vector_odd_trans}")
+        l_even = (vector_even_trans+c[:int(N/2)]*vector_odd_trans) 
+        l_odd = (vector_even_trans+c[int(N/2):]*vector_odd_trans) 
+        l = np.concatenate([l_even, l_odd])
+        # print(f"Concatenated l {l}")
+        return l / len(l_even)
+
+
+def fft(vector):
+    # Divide and conquer
+    N = len(vector)
+    if N == 1:
         x = dft(vector)
         return x
     else:
         # Get the even and odd index numbers
         vector_even, vector_odd = vector[::2], vector[1::2]
-        vector_even_trans = fft(threshold, vector_even, l)
-        vector_odd_trans = fft(threshold, vector_odd, l)
+        vector_even_trans = fft(vector_even)
+        vector_odd_trans = fft(vector_odd)
 
         k = np.arange(N)
-        exp = (-1j * 2 * np.pi / N) * k
+        exp = -1j * 2 * np.pi * k / N
         c = np.exp(exp)
         
         l_even = vector_even_trans+c[:int(N/2)]*vector_odd_trans
         l_odd = vector_even_trans+c[int(N/2):]*vector_odd_trans
-        l = np.concatenate([l, l_even, l_odd])
+        l = np.concatenate([l_even, l_odd])
         return l
-
-def twoDftNormal(img):
+    
+    
+def twoDftNormal(img, mode=dft):
     imgvector = np.asarray(img)
     imgvectorshape = imgvector.shape
     M = imgvectorshape[0]
     N = imgvectorshape[1]
-    mpower = findNextPowerOf2(M)
-    npower = findNextPowerOf2(N)
     
+    if mode == fft:
+        # Need padding
+        mpower = findNextPowerOf2(M)
+        npower = findNextPowerOf2(N)
+        mPadd = mpower - M
+        nPadd = npower - N
+        N += nPadd
+        M += mPadd
+        imgvector = np.pad(imgvector, pad_width=((0, mPadd), (0, nPadd)))
     
-    mPadd = mpower - M
-    nPadd = npower - N
-    
-    
-    realM = M + mPadd
-    realN = N + nPadd
 
-    globalM = M
-    globalN = N
-   # imgvector = np.pad(imgvector, pad_width=((0, mPadd), (0, nPadd)))
-   # resultVector = np.zeros((realM, realN), dtype=complex)
-
-    #imgvector = np.pad(imgvector, pad_width=((0, mPadd), (0, nPadd)))
     resultVector = np.zeros((M, N), dtype=complex)
 
-    #print(resultVector.shape)
-    # print(imgvector[0])
-
-    
-    # for m in range(0,realM):
-    #     print(imgvector.shape)
-    #     print(resultVector.shape)
-    #     print(m)
-    #     resultVector[m] = dft(imgvector[m])
-    #     print(resultVector[m])
-
-    # for n in range(0,realN):
-    #     print(n)
-    #     resultVector[:,n] = dft(resultVector[:,N])
-    #     print(resultVector[:,n])
+    for m in range(0,M):
+        print(m)
+        resultVector[m] = mode(imgvector[m])
+        print(resultVector[m])
 
     for n in range(0,N):
-         print(n)
-         resultVector[:,n] = dft(imgvector[:,n])
-         print(resultVector[:,n])
-
-    for m in range(0,M):
-         print(m)
-         resultVector[m] = dft(resultVector[m])
-         print(resultVector[m])
-
-
+        print(n)
+        resultVector[:,n] = mode(resultVector[:,n])
+        print(resultVector[:,n])
     
 
-    # for n in range(0,realN):
-    #      print(n)
-    #      resultVector[:,n] = dft(imgvector[:,n])
-    #      print(resultVector[:,n])
+    print(f"image vector shape {imgvector.shape}")
+    print(f"M {M}, N {N}")
 
-    # for m in range(0,realM):
-    #      print(m)
-    #      resultVector[m] = dft(resultVector[m])
-    #      print(resultVector[m])
-
-    # for m in range(realM):
-    #     resultVector[:m] = dft(resultVector[:m])
-    #     print(resultVector[:m])
-
+    if mode == fft_inverse:
+        resultVector = (1/N*M) * resultVector
+        resultVector = resultVector[:originalM, :originalN]
+        return resultVector
     return resultVector
    
- #Python program to find
-#smallest power of 2
-#greater than or equal to n
-import math
-
-
 
 # Compute power of two greater than or equal to `n`
 def findNextPowerOf2(n):
@@ -149,39 +142,73 @@ def findNextPowerOf2(n):
     return n << 1
 
 
-
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
-    # Testing
-    # X = [1,2,3,4,5,6,7,0] 
-    # dft_vector = dft(X)
-    # dft_inverse_vector = dft_inverse(dft(X))
-    # print(X)
-    # print(dft_vector)
-    # print(dft_inverse_vector)
-
-    # Testing FFT
-    #X = [1,2,3,4,5,6,7,0] 
-    #fft_vector = fft_driver(1, X)
-    #print(fft_vector)
     img2 = twoDftNormal(img)
-    # Output img with window name as 'image'
-    #np.abs(im_fft), norm=LogNorm(vmin=5)
-    #cv2.imshow('image', np.abs(img2), norm =LogNorm(vmin=5))
    
     plt.figure()
     plt.imshow( np.abs(img2), norm =LogNorm(vmin=5))
     plt.colorbar()
     plt.title('Fourier transform')
     plt.show()
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+
+    # Reconstruct image 
+    reconstructed_image = twoDftNormal(img2, dft_inverse)
+    plt.figure()
+    plt.imshow(reconstructed_image, plt.cm.gray)
+    plt.title('Reconstructed Image')
+    plt.show()
+
     return None
 
 def second_mode():
     # Denoise an image by applying an FFT
     print("Second mode")
+    # X = [0, 10, 255, 21, 69, 420, 7, 1]
+    # fft_image = fft(X)
+    # print(f"Our FFT {fft_image}")
+    # print(f"Their FFT {np.fft.fft(X)}")
+    # print(f"Our Inverse FFT {fft_inverse(fft_image)}")
+    # print(f"Their Inverse FFT {np.fft.ifft(fft_image)}")
+
+    # Use FFT
+    fft_image = twoDftNormal(img, fft)
+   
+    plt.figure()
+    plt.imshow( np.abs(fft_image), norm =LogNorm(vmin=5))
+    plt.colorbar()
+    plt.title('Fourier transform')
+    plt.show()
+
+    # y = fft_image
+    # x = np.arange(0, len(y), 1)
+    # # Plot frequencies
+    # time_step = 0.02
+    # time_vec = np.arange(0, 20, time_step)
+    # plt.figure(figsize=(6, 5))
+    # plt.plot(x, fft_image, label='Original signal')
+    # plt.show()
+
+    # print(f"Before filtering {fft_image}")
+    fft_image[(fft_image.real > (np.pi / 2)) & (fft_image.real < (3 * np.pi / 2))] = 0
+    # fft_image[fft_image > (3 * np.pi / 2)] = 0
+    # fft_image[fft_image < (np.pi / 2)] = 0
+    # fft_image[fft_image < (3 * np.pi / 2)] = 0
+    # filtered = fft_image
+    # r, c = fft_image.shape
+    # fft_image[int(r*0.1):int(r*(1-0.1))] = 0
+    # # Similarly with the columns:
+    # fft_image[:, int(c*0.1):int(c*(1-0.1))] = 0
+    # print(f"After filtering {filtered}")
+    # Change back to image
+    reconstructed_image = twoDftNormal(fft_image, fft_inverse).real
+    plt.figure()
+    plt.imshow(reconstructed_image, plt.cm.gray)
+    plt.title('Reconstructed Image')
+    plt.show()
+    
+
     return None
 
 def third_mode():
