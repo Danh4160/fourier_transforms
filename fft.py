@@ -105,18 +105,18 @@ def twoDftNormal(img, mode=dft):
     resultVector = np.zeros((M, N), dtype=complex)
 
     for m in range(0,M):
-        print(m)
+        #print(m)
         resultVector[m] = mode(imgvector[m])
-        print(resultVector[m])
+        #print(resultVector[m])
 
     for n in range(0,N):
-        print(n)
+        #print(n)
         resultVector[:,n] = mode(resultVector[:,n])
-        print(resultVector[:,n])
+        #print(resultVector[:,n])
     
 
-    print(f"image vector shape {imgvector.shape}")
-    print(f"M {M}, N {N}")
+    #print(f"image vector shape {imgvector.shape}")
+    #print(f"M {M}, N {N}")
 
     if mode == fft_inverse:
         resultVector = (1/N*M) * resultVector
@@ -154,7 +154,7 @@ def default_mode():
     plt.show()
 
     # Reconstruct image 
-    reconstructed_image = twoDftNormal(img2, dft_inverse)
+    reconstructed_image = twoDftNormal(img2, dft_inverse).real
     plt.figure()
     plt.imshow(reconstructed_image, plt.cm.gray)
     plt.title('Reconstructed Image')
@@ -214,6 +214,34 @@ def second_mode():
 def third_mode():
     # Compressing and saving image
     print("Third mode")
+    a = 2  # number of rows
+    b = 3  # number of columns
+    c = 1  # initialize plot counter
+    fig = plt.figure()
+    plt.suptitle("Compression of Image")
+    arrayImg = np.asarray(img)
+    print(arrayImg.shape)
+    fftimg = twoDftNormal(img, fft)
+    fftSorted = np.sort(np.abs(fftimg.reshape(-1)))
+    for compressPerc in (1,0.8,0.6,0.4,0.2,0.05):
+        thresh = fftSorted[int(np.floor((1-compressPerc) * len(fftSorted)))]
+        ind = np.abs(fftimg)>thresh
+        lowFarray = fftimg * ind
+        lofArray = twoDftNormal(lowFarray, fft_inverse).real
+        #plt.figure()
+        numberOfNonzero = np.count_nonzero(lowFarray)
+        savearray = np.asarray(lowFarray)
+
+        sizelowarray = lowFarray.shape
+        sizex = sizelowarray[0]
+        sizey = sizelowarray[1]
+        np.savetxt('data'+str(c)+'.csv',savearray,delimiter=',')
+        plt.subplot(a,b,c)
+        plt.imshow(lofArray, plt.cm.gray)
+        plt.title('Compression =' + str(100 - compressPerc * 100) + '%')
+        print('Number of nonzero Fourier coefficients for Compression = '+ str(100 - compressPerc * 100) + '%' + ' is equal to: ' + str(numberOfNonzero) + ' and Sparsity is equal to: ' + str(1-(numberOfNonzero/(sizex*sizey))))
+        c=c+1
+    plt.show()
     return None
 
 def fourth_mode():
