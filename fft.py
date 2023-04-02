@@ -5,9 +5,6 @@ from matplotlib.colors import LogNorm
 import time
 
 
-img = plt.imread('./moonlanding.png').astype(float)
-originalM, originalN = np.asarray(img).shape
-
 def dft(vector):
     N = len(vector)
     n = np.arange(N)
@@ -473,6 +470,20 @@ if __name__ == "__main__":
     mode = "1"
     image = "moonlanding.png"
 
+
+    if len(sys.argv) > 6:
+        print("Too many arguments, Exiting...")
+        exit()
+
+    if "-m" in sys.argv and "-i" in sys.argv and len(sys.argv) != 6:
+        print("Missing arguments, Exiting...")
+        exit()
+
+    if '-m' not in sys.argv and '-i' not in sys.argv and len(sys.argv) != 2:
+        print("Bad Command, Exiting...")
+        exit()
+
+    
     for i in range(len(sys.argv)):
         if  sys.argv[i] == '-m':
             i += 1
@@ -481,6 +492,12 @@ if __name__ == "__main__":
         elif sys.argv[i] == '-i':
             i += 1
             image = sys.argv[i]
+    try:
+        img = plt.imread(f'./{image}').astype(float)
+        originalM, originalN = np.asarray(img).shape
+    except Exception:
+        print("Unable to open image, Exiting...")
+        exit()
     
     if mode == "1":
         default_mode()
@@ -499,9 +516,8 @@ if __name__ == "__main__":
         print("Testing...")
         test_correctness()
         test_reconstruct_image()
-
     else:
-        print("Bad Argument")
+        print("Bad Argument, Exiting...")
 
 
 
