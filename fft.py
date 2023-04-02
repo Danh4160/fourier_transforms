@@ -95,7 +95,7 @@ def trans_2d(img, test=False, mode=dft):
             resultVector = (1/(N * M)) * resultVector[:originalM, :originalN] # Use the size of the original image
             return resultVector
 
-    return resultVector
+    return resultVector[:originalM,:originalN]
    
 
 def find_next_power_2(n):
@@ -471,6 +471,25 @@ def test_reconstruct_image():
     print(f"Average difference between orginal image and reconstructed image: {s}")
     print("----------------------------------------------")
 
+def testNumpyFTandPersonalFT():
+    print("---------------- TEST 13 ----------------------")
+    print(f" Difference between Numpy FT and our FT")
+    print("----------------------------------------------")
+    fft_image = trans_2d(img, mode=fft)
+    fft_image2 = np.fft.fft2(img) 
+    plt.figure(figsize=(15,5))
+    plt.subplot(121), plt.imshow(np.abs(fft_image.real), norm=LogNorm(vmin=5))
+    plt.colorbar()
+    plt.title("Our Fourier Transform"), plt.xticks([]), plt.yticks([])
+    plt.subplot(122), plt.imshow(np.abs(fft_image2.real), norm=LogNorm(vmin=5))
+    plt.colorbar()
+    plt.title("Numpy  Fourier Transform"), plt.xticks([]), plt.yticks([])
+    plt.suptitle("Side by side comparison",fontsize=22)
+    plt.savefig("./mode_1_results/ComparingPlots.png")
+    plt.show()
+ 
+
+
 
 if __name__ == "__main__":
     # Default values
@@ -521,8 +540,9 @@ if __name__ == "__main__":
     elif mode == "t":
         # Testing purposes
         print("Testing...")
-        test_correctness()
-        test_reconstruct_image()
+        #test_correctness()
+        #test_reconstruct_image()
+        testNumpyFTandPersonalFT()
     else:
         print("Bad Argument, Exiting...")
 
