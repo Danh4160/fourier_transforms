@@ -1,10 +1,6 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import math
-import cmath
-import cv2
-import PIL
 from matplotlib.colors import LogNorm
 import time
 
@@ -31,7 +27,6 @@ def fft_inverse(vector):
     # Divide and conquer
     N = vector.shape[0]
     if N <= 16:
-        # print(f"Called dft inverse, vector is {x}")
         return dft_inverse(vector) * N
     else:
         # Get the even and odd index numbers
@@ -70,11 +65,9 @@ def trans_2d(img, test=False, mode=dft):
     imgvectorshape = imgvector.shape
     M = imgvectorshape[0]
     N = imgvectorshape[1]
-    # print(M, N)
     
     if mode == fft:
         # Need padding
-        # print("pad")
         mpower = find_next_power_2(M)
         npower = find_next_power_2(N)
         mPadd = mpower - M
@@ -86,42 +79,25 @@ def trans_2d(img, test=False, mode=dft):
     resultVector = np.zeros((M, N), dtype=complex)
     
     for m in range(0,M):
-        # print(m)
         resultVector[m] = mode(imgvector[m])
-        # print(resultVector[m])
-
-    # FFT on columns
     for n in range(0,N):
-        # print(n)
         resultVector[:,n] = mode(resultVector[:,n])
-        # print(resultVector[:,n])
-
 
     if mode == fft_inverse:
         if test:
-            resultVector = (1/(N * M)) * resultVector[:M, :N]
+            resultVector = (1/(N * M)) * resultVector[:M, :N] # Use the size of the array passed in testing
             return resultVector
         else:
-            resultVector = (1/(N * M)) * resultVector[:originalM, :originalN]
+            resultVector = (1/(N * M)) * resultVector[:originalM, :originalN] # Use the size of the original image
             return resultVector
 
     return resultVector
    
 
-# Compute power of two greater than or equal to `n`
 def find_next_power_2(n):
- 
-    # decrement `n` (to handle cases when `n` itself
-    # is a power of 2)
     n = n - 1
- 
-    # do till only one bit is left
     while n & n - 1:
-        n = n & n - 1       # unset rightmost bit
- 
-    # `n` is now a power of two (less than `n`)
- 
-    # return next power of 2
+        n = n & n - 1       
     return n << 1
 
 def test_runtime():
@@ -134,14 +110,12 @@ def test_runtime():
         fft_time_res = []
         for i in range(10):
             # Testing DFT
-            print(f"DFT Round {size}.{i}")
             start = time.time()
             trans_2d(arr, mode=dft)
             end = time.time()
             dft_time_res.append(end - start)
 
             # Testing FFT
-            print(f"FFT Round {size}.{i}")
             start = time.time()
             trans_2d(arr, mode=fft)
             end = time.time()
@@ -154,9 +128,6 @@ def test_runtime():
     dft_std = np.std(dft_final, axis=1)
     fft_mean = np.mean(fft_final, axis=1)
     fft_std = np.std(fft_final, axis=1)
-
-    print(f"DFT mean {dft_mean} std {dft_std}")
-    print(f"FFT mean {fft_mean} std {fft_std}")
 
     for i, size in enumerate(sizes):
         print(f"Array with size 2^{size}")
@@ -173,7 +144,6 @@ def second_mode_test1(fft_input):
     for t in amount:
         fft_image_copy = np.copy(fft_input)
         M, N = fft_image_copy.shape
-        print(f"Shape of image: {fft_image_copy.shape}")
         fft_image_copy[int(M * t):, :int(M * (1-t))] = 0
         fft_image_copy[:,int(N * t):int(N * (1-t))] = 0
 
@@ -230,7 +200,6 @@ def second_mode_test3(fft_input):
         plt.title("Denoised"), plt.xticks([]), plt.yticks([])
         plt.suptitle("Percent Low Frequency Removed in each row: {}%".format(100 * t),fontsize=22)
         plt.savefig(f'./mode_2_results/test3_{t}_with16threshold.png')
-        # plt.show()
     plt.close()
     return None
 
@@ -254,7 +223,6 @@ def second_mode_test4(fft_input):
         plt.title("Denoised"), plt.xticks([]), plt.yticks([])
         plt.suptitle("Percent Low/High Frequency Removed in each row: {}%".format(100 * t),fontsize=22)
         plt.savefig(f'./mode_2_results/test4_{t}_with16threshold.png')
-        # plt.show()
     plt.close()
     return None
 
@@ -304,10 +272,6 @@ def second_mode():
     plt.show()
     plt.close()
 
-    # Since the frequencies in a fourier transform are index based, and due to its symmetry, we know 
-    # that the highest frequencies would be in the neighborhood of matrix' heigth and width. 
-    # Indeed, the we performed the transformation first on the row then on the columns.
-    
     # For testing purposes
     # second_mode_test1(fft_image)
 
@@ -393,7 +357,6 @@ def test_correctness():
     test_array = np.random.rand(512, 512) 
     fft_inverse_expected = np.fft.ifft2(test_array)
     fft_inverse_actual = trans_2d(test_array, test=True, mode=fft_inverse)
-    # fft_inverse_actual = inverse_dft2_fast(test_array)
     difference = np.abs(fft_inverse_expected - fft_inverse_actual)
     s = np.sum(difference) / (512 * 512)
     print("---------------- TEST 2 ----------------------")
@@ -467,9 +430,7 @@ if __name__ == "__main__":
         fourth_mode()
 
     else:
-        # For testing purposes
-        print("Testing Correctness")
-        test_correctness()
+        print("Bad Argument")
 
 
 
