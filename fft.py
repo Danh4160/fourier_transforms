@@ -74,16 +74,16 @@ def fft(vector):
         return vector_even_trans + c * vector_odd_trans
 
 
-def twoDftNormal(img, mode=dft):
+def twoDftNormal(img, test=False, mode=dft):
     imgvector = np.asarray(img)
     imgvectorshape = imgvector.shape
     M = imgvectorshape[0]
     N = imgvectorshape[1]
-    # print(M, N)
+    print(M, N)
     
-    if mode == fft and  M % 2 == 0 and N % 2 == 0:
+    if mode == fft:
         # Need padding
-        # print("pad")
+        print("pad")
         mpower = findNextPowerOf2(M)
         npower = findNextPowerOf2(N)
         mPadd = mpower - M
@@ -105,10 +105,15 @@ def twoDftNormal(img, mode=dft):
         resultVector[:,n] = mode(resultVector[:,n])
         # print(resultVector[:,n])
 
+
     if mode == fft_inverse:
-        resultVector = (1/(N * M)) * resultVector[:M, :N]
-        return resultVector
-    
+        if test:
+            resultVector = (1/(N * M)) * resultVector[:M, :N]
+            return resultVector
+        else:
+            resultVector = (1/(N * M)) * resultVector[:originalM, :originalN]
+            return resultVector
+
     return resultVector
    
 
@@ -177,17 +182,18 @@ def second_mode_test1(fft_input):
     for t in amount:
         fft_image_copy = np.copy(fft_input)
         M, N = fft_image_copy.shape
+        print(f"Shape of image: {fft_image_copy.shape}")
         fft_image_copy[int(M * t):, :int(M * (1-t))] = 0
         fft_image_copy[:,int(N * t):int(N * (1-t))] = 0
 
-        reconstructed_image =  twoDftNormal(fft_image_copy, fft_inverse).real
+        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
         plt.subplot(122), plt.imshow(reconstructed_image, cmap="gray")
         plt.title("Denoised"), plt.xticks([]), plt.yticks([])
         plt.suptitle("Percent High Frequencies Removed: {}".format(100 * t),fontsize=22)
-        plt.savefig(f'./denoise_tests/denoise_test1_{t}_1.png')
+        plt.savefig(f'./mode_2_results/test1_{t}_with16threshold.png')
         # plt.show()
     plt.close()
     return None
@@ -204,14 +210,14 @@ def second_mode_test2(fft_input):
             index = np.argsort(np.abs(row))[::-1]
             row[index[:int(n * t)]] = 0
 
-        reconstructed_image =  twoDftNormal(fft_image_copy, fft_inverse).real
+        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
         plt.subplot(122), plt.imshow(reconstructed_image, cmap="gray")
         plt.title("Denoised"), plt.xticks([]), plt.yticks([])
         plt.suptitle("Percent High Frequency Removed in each row: {}%".format(100*t),fontsize=22)
-        plt.savefig(f'./denoise_tests/denoise_test2_{t}_1.png')
+        plt.savefig(f'./mode_2_results/test2_{t}_with16threshold.png')
         # plt.show()
     plt.close()
     return None
@@ -225,14 +231,14 @@ def second_mode_test3(fft_input):
         for row in fft_image_copy:
             index = np.argsort(np.abs(row))
             row[index[:int(n * t)]] = 0
-        reconstructed_image =  twoDftNormal(fft_image_copy, fft_inverse).real
+        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
         plt.subplot(122), plt.imshow(reconstructed_image, cmap="gray")
         plt.title("Denoised"), plt.xticks([]), plt.yticks([])
         plt.suptitle("Percent Low Frequency Removed in each row: {}%".format(100 * t),fontsize=22)
-        plt.savefig(f'./denoise_tests/denoise_test3_{t}_1.png')
+        plt.savefig(f'./mode_2_results/test3_{t}_with16threshold.png')
         # plt.show()
     plt.close()
     return None
@@ -249,14 +255,14 @@ def second_mode_test4(fft_input):
             row[index[:int(n * t)]] = 0
             row[index[-int(n * t):]] = 0
 
-        reconstructed_image =  twoDftNormal(fft_image_copy, fft_inverse).real
+        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
         plt.subplot(122), plt.imshow(reconstructed_image, cmap="gray")
         plt.title("Denoised"), plt.xticks([]), plt.yticks([])
         plt.suptitle("Percent Low/High Frequency Removed in each row: {}%".format(100 * t),fontsize=22)
-        plt.savefig(f'./denoise_tests/denoise_test4_{t}_1.png')
+        plt.savefig(f'./mode_2_results/test4_{t}_with16threshold.png')
         # plt.show()
     plt.close()
     return None
@@ -264,7 +270,7 @@ def second_mode_test4(fft_input):
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
-    fft_image = twoDftNormal(img, fft)
+    fft_image = twoDftNormal(img, mode=fft)
     
     plt.figure(figsize=(15,5))
     plt.subplot(121), plt.imshow(img, cmap="gray")
@@ -272,12 +278,9 @@ def default_mode():
     plt.subplot(122), plt.imshow(np.abs(fft_image.real), norm=LogNorm(vmin=5))
     plt.colorbar()
     plt.title("Fourier Transform"), plt.xticks([]), plt.yticks([])
+    plt.suptitle("Side by side comparison",fontsize=22)
     plt.savefig("./mode_1_results/originalvsft.png")
     plt.show()
-
-    # reconstructed_image = twoDftNormal(fft_image, fft_inverse).real
-    # plt.imshow(reconstructed_image, cmap="gray")
-    # plt.show()
     
     return None
 
@@ -286,7 +289,7 @@ def second_mode():
     print("Second mode")
     
     # Use FFT
-    fft_image = twoDftNormal(img, fft)
+    fft_image = twoDftNormal(img, mode=fft)
    
     plt.figure()
     plt.imshow(np.abs(fft_image), norm =LogNorm(vmin=5))
@@ -297,7 +300,6 @@ def second_mode():
     # Since the frequencies in a fourier transform are index based, and due to its symmetry, we know 
     # that the highest frequencies would be in the neighborhood of matrix' heigth and width. 
     # Indeed, the we performed the transformation first on the row then on the columns.
-
     second_mode_test1(fft_image)
 
     second_mode_test2(fft_image)
@@ -340,7 +342,7 @@ def fourth_mode():
 
 def test_correctness():
     # Test for differences using FFT
-    fft_actual = twoDftNormal(img, fft)
+    fft_actual = twoDftNormal(img, mode=fft)
     fft_expected = np.fft.fft2(img, s=fft_actual.shape)
     difference = np.abs(fft_expected - fft_actual)
     s = np.sum(difference) / (img.shape[0] * img.shape[1])
@@ -351,7 +353,7 @@ def test_correctness():
     # Test for differences in inverse FFT
     test_array = np.random.rand(512, 512) 
     fft_inverse_expected = np.fft.ifft2(test_array)
-    fft_inverse_actual = twoDftNormal(test_array, fft_inverse)
+    fft_inverse_actual = twoDftNormal(test_array, test=True, mode=fft_inverse)
     # fft_inverse_actual = inverse_dft2_fast(test_array)
     difference = np.abs(fft_inverse_expected - fft_inverse_actual)
     s = np.sum(difference) / (512 * 512)
