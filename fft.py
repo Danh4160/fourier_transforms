@@ -95,7 +95,7 @@ def trans_2d(img, test=False, mode=dft):
             resultVector = (1/(N * M)) * resultVector[:originalM, :originalN] # Use the size of the original image
             return resultVector
 
-    return resultVector[:originalM,:originalN]
+    return resultVector
    
 
 def find_next_power_2(n):
@@ -350,7 +350,7 @@ def fourth_mode():
 def test_correctness():
     # Test for differences using FFT
     fft_actual = trans_2d(img, mode=fft)
-    fft_expected = np.fft.fft2(img, s=fft_actual.shape)
+    fft_expected = np.fft.fft2(img, fft_actual.shape)
     difference = np.abs(fft_expected - fft_actual)
     s = np.sum(difference) / (img.shape[0] * img.shape[1])
     print("---------------- TEST 1 ----------------------")
@@ -471,12 +471,12 @@ def test_reconstruct_image():
     print(f"Average difference between orginal image and reconstructed image: {s}")
     print("----------------------------------------------")
 
-def testNumpyFTandPersonalFT():
+def test_numpyFT_and_personalFT():
     print("---------------- TEST 13 ----------------------")
-    print(f" Difference between Numpy FT and our FT")
+    print(f" Difference between Numpy FFT and our FFT")
     print("----------------------------------------------")
     fft_image = trans_2d(img, mode=fft)
-    fft_image2 = np.fft.fft2(img) 
+    fft_image2 = np.fft.fft2(img, fft_image.shape) 
     plt.figure(figsize=(15,5))
     plt.subplot(121), plt.imshow(np.abs(fft_image.real), norm=LogNorm(vmin=5))
     plt.colorbar()
@@ -540,9 +540,9 @@ if __name__ == "__main__":
     elif mode == "t":
         # Testing purposes
         print("Testing...")
-        #test_correctness()
-        #test_reconstruct_image()
-        testNumpyFTandPersonalFT()
+        test_correctness()
+        test_reconstruct_image()
+        test_numpyFT_and_personalFT()
     else:
         print("Bad Argument, Exiting...")
 
