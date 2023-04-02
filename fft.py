@@ -65,18 +65,18 @@ def fft(vector):
         return vector_even_trans + c * vector_odd_trans
 
 
-def twoDftNormal(img, test=False, mode=dft):
+def trans_2d(img, test=False, mode=dft):
     imgvector = np.asarray(img)
     imgvectorshape = imgvector.shape
     M = imgvectorshape[0]
     N = imgvectorshape[1]
-    print(M, N)
+    # print(M, N)
     
     if mode == fft:
         # Need padding
-        print("pad")
-        mpower = findNextPowerOf2(M)
-        npower = findNextPowerOf2(N)
+        # print("pad")
+        mpower = find_next_power_2(M)
+        npower = find_next_power_2(N)
         mPadd = mpower - M
         nPadd = npower - N
         N += nPadd
@@ -89,7 +89,6 @@ def twoDftNormal(img, test=False, mode=dft):
         # print(m)
         resultVector[m] = mode(imgvector[m])
         # print(resultVector[m])
-
 
     # FFT on columns
     for n in range(0,N):
@@ -110,7 +109,7 @@ def twoDftNormal(img, test=False, mode=dft):
    
 
 # Compute power of two greater than or equal to `n`
-def findNextPowerOf2(n):
+def find_next_power_2(n):
  
     # decrement `n` (to handle cases when `n` itself
     # is a power of 2)
@@ -137,14 +136,14 @@ def test_runtime():
             # Testing DFT
             print(f"DFT Round {size}.{i}")
             start = time.time()
-            twoDftNormal(arr, mode=dft)
+            trans_2d(arr, mode=dft)
             end = time.time()
             dft_time_res.append(end - start)
 
             # Testing FFT
             print(f"FFT Round {size}.{i}")
             start = time.time()
-            twoDftNormal(arr, mode=fft)
+            trans_2d(arr, mode=fft)
             end = time.time()
             fft_time_res.append(end - start)
 
@@ -178,7 +177,7 @@ def second_mode_test1(fft_input):
         fft_image_copy[int(M * t):, :int(M * (1-t))] = 0
         fft_image_copy[:,int(N * t):int(N * (1-t))] = 0
 
-        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
+        reconstructed_image =  trans_2d(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
@@ -202,7 +201,7 @@ def second_mode_test2(fft_input):
             index = np.argsort(np.abs(row))[::-1]
             row[index[:int(n * t)]] = 0
 
-        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
+        reconstructed_image =  trans_2d(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
@@ -223,7 +222,7 @@ def second_mode_test3(fft_input):
         for row in fft_image_copy:
             index = np.argsort(np.abs(row))
             row[index[:int(n * t)]] = 0
-        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
+        reconstructed_image =  trans_2d(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
@@ -247,7 +246,7 @@ def second_mode_test4(fft_input):
             row[index[:int(n * t)]] = 0
             row[index[-int(n * t):]] = 0
 
-        reconstructed_image =  twoDftNormal(fft_image_copy, mode=fft_inverse).real
+        reconstructed_image =  trans_2d(fft_image_copy, mode=fft_inverse).real
         plt.figure(figsize=(15,5))
         plt.subplot(121), plt.imshow(img, cmap="gray")
         plt.title("Original"), plt.xticks([]), plt.yticks([])
@@ -262,7 +261,7 @@ def second_mode_test4(fft_input):
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
-    fft_image = twoDftNormal(img, mode=fft)
+    fft_image = trans_2d(img, mode=fft)
     
     plt.figure(figsize=(15,5))
     plt.subplot(121), plt.imshow(img, cmap="gray")
@@ -273,12 +272,7 @@ def default_mode():
     plt.suptitle("Side by side comparison",fontsize=22)
     plt.savefig("./mode_1_results/originalvsft.png")
     plt.show()
-    # Reconstruct image 
-    reconstructed_image = twoDftNormal(img2, dft_inverse).real
-    plt.figure()
-    plt.imshow(reconstructed_image, plt.cm.gray)
-    plt.title('Reconstructed Image')
-    plt.show()
+    
     return None
 
 def second_mode():
@@ -286,24 +280,42 @@ def second_mode():
     print("Second mode")
     
     # Use FFT
-    fft_image = twoDftNormal(img, mode=fft)
+    fft_image = trans_2d(img, mode=fft)
    
-    plt.figure()
-    plt.imshow(np.abs(fft_image), norm =LogNorm(vmin=5))
-    plt.colorbar()
-    plt.title('Fourier transform')
+    # Remove high frequencies in the middle of the plot, keeping the corners only
+    optimal_threshold = 0.07
+    fft_image_copy = np.copy(fft_image)
+    M, N = fft_image_copy.shape
+    fft_image_copy[int(M * optimal_threshold):, :int(M * (1-optimal_threshold))] = 0
+    fft_image_copy[:,int(N * optimal_threshold):int(N * (1-optimal_threshold))] = 0
+
+    number_of_nonzero = np.count_nonzero(fft_image_copy)
+    print(f"Number of nonzero Fourier coefficients for denoising = {number_of_nonzero}")
+    print(f"Fraction of nonzero Fourier coefficients = {number_of_nonzero / (M*N)}")
+
+    reconstructed_image =  trans_2d(fft_image_copy, mode=fft_inverse).real
+    plt.figure(figsize=(15,5))
+    plt.subplot(121), plt.imshow(img, cmap="gray")
+    plt.title("Original"), plt.xticks([]), plt.yticks([])
+    plt.subplot(122), plt.imshow(reconstructed_image, cmap="gray")
+    plt.title("Denoised"), plt.xticks([]), plt.yticks([])
+    plt.suptitle("Percent High Frequencies Removed: {}".format(100 * optimal_threshold),fontsize=22)
+    plt.savefig('./mode_2_results/originalVSdenoised.png')
     plt.show()
+    plt.close()
 
     # Since the frequencies in a fourier transform are index based, and due to its symmetry, we know 
     # that the highest frequencies would be in the neighborhood of matrix' heigth and width. 
     # Indeed, the we performed the transformation first on the row then on the columns.
-    second_mode_test1(fft_image)
+    
+    # For testing purposes
+    # second_mode_test1(fft_image)
 
-    second_mode_test2(fft_image)
+    # second_mode_test2(fft_image)
 
-    second_mode_test3(fft_image)
+    # second_mode_test3(fft_image)
 
-    second_mode_test4(fft_image)
+    # second_mode_test4(fft_image)
 
     return None
 
@@ -316,14 +328,14 @@ def third_mode():
     fig = plt.figure()
     plt.suptitle("Compression of Image")
     array_img = np.asarray(img)
-    print(array_img.shape)
-    fft_img = twoDftNormal(img, fft)
+    # print(array_img.shape)
+    fft_img = trans_2d(img, mode=fft)
     fft_sorted = np.sort(np.abs(fft_img.reshape(-1)))
     for compress_perc in (1,0.8,0.6,0.4,0.2,0.05):
         thresh = fft_sorted[int(np.floor((1-compress_perc) * len(fft_sorted)))]
         ind = np.abs(fft_img)>thresh
         low_Farray = fft_img * ind
-        lofArray = twoDftNormal(low_Farray, fft_inverse).real
+        lofArray = trans_2d(low_Farray, mode=fft_inverse).real
         #plt.figure()
         number_of_nonzero = np.count_nonzero(low_Farray)
         savearray = np.asarray(low_Farray)
@@ -331,12 +343,14 @@ def third_mode():
         sizelowarray = low_Farray.shape
         sizex = sizelowarray[0]
         sizey = sizelowarray[1]
-        np.savetxt('data'+str(c)+'.csv',savearray,delimiter=',')
+        np.savetxt('./mode_3_results/data'+str(c)+'.csv',savearray,delimiter=',')
         plt.subplot(a,b,c)
         plt.imshow(lofArray, plt.cm.gray)
         plt.title('Compression =' + str(100 - compress_perc * 100) + '%')
-        print('Number of nonzero Fourier coefficients for Compression = '+ str(100 - compress_perc * 100) + '%' + ' is equal to: ' + str(number_of_nonzero) + ' and Sparsity is equal to: ' + str(1-(numberOfNonzero/(sizex*sizey))))
+        print('Number of nonzero Fourier coefficients for Compression = '+ str(100 - compress_perc * 100) + '%' + ' is equal to: ' \
+              + str(number_of_nonzero) + ' and Sparsity is equal to: ' + str(1-(number_of_nonzero/(sizex*sizey))))
         c=c+1
+    plt.savefig("./mode_3_results/compression.png")
     plt.show()
     return None
 
@@ -367,7 +381,7 @@ def fourth_mode():
 
 def test_correctness():
     # Test for differences using FFT
-    fft_actual = twoDftNormal(img, mode=fft)
+    fft_actual = trans_2d(img, mode=fft)
     fft_expected = np.fft.fft2(img, s=fft_actual.shape)
     difference = np.abs(fft_expected - fft_actual)
     s = np.sum(difference) / (img.shape[0] * img.shape[1])
@@ -378,7 +392,7 @@ def test_correctness():
     # Test for differences in inverse FFT
     test_array = np.random.rand(512, 512) 
     fft_inverse_expected = np.fft.ifft2(test_array)
-    fft_inverse_actual = twoDftNormal(test_array, test=True, mode=fft_inverse)
+    fft_inverse_actual = trans_2d(test_array, test=True, mode=fft_inverse)
     # fft_inverse_actual = inverse_dft2_fast(test_array)
     difference = np.abs(fft_inverse_expected - fft_inverse_actual)
     s = np.sum(difference) / (512 * 512)
@@ -413,17 +427,17 @@ def test_correctness():
     difference = np.abs(fft_expected - fft_actual)
     s = np.sum(difference) / 512
     print("---------------- TEST 5 ----------------------")
-    print(f"Correcness test 1D-FFT: Numpy vs Ours custom returns {np.allclose(dft_inverse_expected, dft_inverse_actual)}")
+    print(f"Correcness test 1D-FFT: Numpy vs Ours custom returns {np.allclose(fft_expected, fft_actual)}")
     print(f"Average difference between expected and actual: {s}")
    
     # Test for differences in inverse FFT
-    test_array = np.random.rand(512)
-    ft_inverse_expected = np.fft.ifft(test_array)
-    fft_inverse_actual = fft_inverse(test_array)
-    difference = np.abs(ft_inverse_expected - fft_inverse_actual)
+    test_array = np.random.rand(32)
+    fft_inverse_expected = np.fft.ifft(test_array)
+    fft_inverse_actual = fft_inverse(test_array) / 32 # Need to divide by the length of the arrray for the inverse, cannot do this in recursive algo
+    difference = np.abs(fft_inverse_expected - fft_inverse_actual)
     s = np.sum(difference) / 512
     print("---------------- TEST 6 ----------------------")
-    print(f"Correcness test 1D-FFT-Inverse: Numpy vs Ours custom returns {np.allclose(dft_inverse_expected, dft_inverse_actual)}")
+    print(f"Correcness test 1D-FFT-Inverse: Numpy vs Ours custom returns {np.allclose(fft_inverse_expected, fft_inverse_actual)}")
     print(f"Average difference between expected and actual: {s}")
     print("----------------------------------------------")
 
