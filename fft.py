@@ -5,7 +5,7 @@ from matplotlib.colors import LogNorm
 import time
 
 
-img = plt.imread('images\moonlanding.png').astype(float)
+img = plt.imread('./moonlanding.png').astype(float)
 originalM, originalN = np.asarray(img).shape
 
 def dft(vector):
@@ -407,15 +407,18 @@ def test_correctness():
     return None
 
 if __name__ == "__main__":
-    
+    # Default values
     mode = "1"
     image = "moonlanding.png"
 
-    if len(sys.argv) - 1 == 2:
-        mode = sys.argv[1]
-        image = sys.argv[2]
-    elif len(sys.argv) -1 == 1: 
-        mode = sys.argv[1]
+    for i in range(len(sys.argv)):
+        if  sys.argv[i] == '-m':
+            i += 1
+            mode = sys.argv[i]
+            
+        elif sys.argv[i] == '-i':
+            i += 1
+            image = sys.argv[i]
     
     if mode == "1":
         default_mode()
