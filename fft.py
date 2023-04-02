@@ -19,15 +19,6 @@ def dft(vector):
     c = np.exp(-1j * 2 * np.pi * k * n / N)
     return np.dot(vector, c)
 
-
-def dft_inverse_fft(vector): 
-    N = len(vector)
-    n = np.arange(N)
-    k = np.reshape(n, (N, 1))
-    c = np.exp(1j * 2 * np.pi * k * n / N)
-    return (1/N) * np.dot(vector, c)
-
-
 def dft_inverse(vector):
     N = len(vector)
     n = np.arange(N)
@@ -57,7 +48,7 @@ def fft_inverse(vector):
 
 def fft(vector):
     # Divide and conquer
-    N = len(vector)
+    N = vector.shape[0]
     if N <= 16:
         return dft(vector)
     else:
@@ -378,6 +369,26 @@ def test_correctness():
     difference = np.abs(dft_inverse_expected - dft_inverse_actual)
     s = np.sum(difference) / 512
     print("---------------- TEST 4 ----------------------")
+    print(f"Correcness test 1D-DFT-Inverse: Numpy vs Ours custom returns {np.allclose(dft_inverse_expected, dft_inverse_actual)}")
+    print(f"Average difference between expected and actual: {s}")
+ 
+    # Test for differences in FFT
+    test_array = np.random.rand(512)
+    fft_expected = np.fft.fft(test_array)
+    fft_actual = fft(test_array)
+    difference = np.abs(fft_expected - fft_actual)
+    s = np.sum(difference) / 512
+    print("---------------- TEST 5 ----------------------")
+    print(f"Correcness test 1D-FFT: Numpy vs Ours custom returns {np.allclose(dft_inverse_expected, dft_inverse_actual)}")
+    print(f"Average difference between expected and actual: {s}")
+   
+    # Test for differences in inverse FFT
+    test_array = np.random.rand(512)
+    ft_inverse_expected = np.fft.ifft(test_array)
+    fft_inverse_actual = fft_inverse(test_array)
+    difference = np.abs(ft_inverse_expected - fft_inverse_actual)
+    s = np.sum(difference) / 512
+    print("---------------- TEST 6 ----------------------")
     print(f"Correcness test 1D-FFT-Inverse: Numpy vs Ours custom returns {np.allclose(dft_inverse_expected, dft_inverse_actual)}")
     print(f"Average difference between expected and actual: {s}")
     print("----------------------------------------------")
