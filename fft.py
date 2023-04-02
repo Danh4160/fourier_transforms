@@ -394,17 +394,50 @@ def test_correctness():
     print(f"Average difference between expected and actual: {s}")
    
     # Test for differences in inverse FFT
-    test_array = np.random.rand(32)
+    test_array = np.random.rand(512)
     fft_inverse_expected = np.fft.ifft(test_array)
-    fft_inverse_actual = fft_inverse(test_array) / 32 # Need to divide by the length of the arrray for the inverse, cannot do this in recursive algo
+    fft_inverse_actual = fft_inverse(test_array) / 512 # Need to divide by the length of the arrray for the inverse, cannot do this in recursive algo
     difference = np.abs(fft_inverse_expected - fft_inverse_actual)
     s = np.sum(difference) / 512
     print("---------------- TEST 6 ----------------------")
     print(f"Correcness test 1D-FFT-Inverse: Numpy vs Ours custom returns {np.allclose(fft_inverse_expected, fft_inverse_actual)}")
     print(f"Average difference between expected and actual: {s}")
-    print("----------------------------------------------")
 
     return None
+
+
+def test_reconstruct_image():
+    # Apply 2D FFT then apply 2D FFT Inverse
+    img_array = np.asarray(img)
+    fft_image = trans_2d(img_array, mode=fft)
+    reconstructed_image = trans_2d(fft_image, mode=fft_inverse)
+    difference = np.abs(img_array - reconstructed_image)
+    s = np.sum(difference) / (originalN * originalM)
+    print("---------------- TEST 7 ----------------------")
+    print(f"Original Image and Reconstructed image are similar using 2D FFT: {np.allclose(img_array, reconstructed_image)}")
+    print(f"Average difference between orginal image and reconstructed image: {s}")
+
+    # Apply 1D DFT then apply 1D DFT Inverse
+    test_array = np.random.rand(512)
+    dft_image = dft(test_array)
+    reconstructed_image = dft_inverse(dft_image)
+    difference = np.abs(test_array - reconstructed_image)
+    s = np.sum(difference) / 512
+    print("---------------- TEST 8 ----------------------")
+    print(f"Original Image and Reconstructed image are similar using 1D DFT: {np.allclose(test_array, reconstructed_image)}")
+    print(f"Average difference between orginal image and reconstructed image: {s}")
+   
+    # Apply 1D FFT then apply 1D FFT Inverse
+    test_array = np.random.rand(512)
+    dft_image = fft(test_array)
+    reconstructed_image = fft_inverse(dft_image) / 512 # Need this division for FFT inverse
+    difference = np.abs(test_array - reconstructed_image)
+    s = np.sum(difference) / 512
+    print("---------------- TEST 9 ----------------------")
+    print(f"Original Image and Reconstructed image are similar using 1D FFT: {np.allclose(test_array, reconstructed_image)}")
+    print(f"Average difference between orginal image and reconstructed image: {s}")
+    print("----------------------------------------------")
+
 
 if __name__ == "__main__":
     # Default values
@@ -431,6 +464,12 @@ if __name__ == "__main__":
 
     elif mode == "4":
         fourth_mode()
+
+    elif mode == "t":
+        # Testing purposes
+        print("Testing...")
+        test_correctness()
+        test_reconstruct_image()
 
     else:
         print("Bad Argument")
