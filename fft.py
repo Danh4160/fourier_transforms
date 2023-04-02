@@ -23,6 +23,10 @@ def dft_inverse(vector):
 def fft_inverse(vector):
     # Divide and conquer
     N = vector.shape[0]
+
+    if (N & N - 1):
+        print("Size must be a power of 2, Exiting...")
+        exit()
     if N <= 16:
         return dft_inverse(vector) * N
     else:
@@ -41,6 +45,9 @@ def fft_inverse(vector):
 def fft(vector):
     # Divide and conquer
     N = vector.shape[0]
+    if (N & N - 1):
+        print("Size must be a power of 2, Exiting...")
+        exit()
     if N <= 16:
         return dft(vector)
     else:
