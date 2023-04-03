@@ -469,14 +469,16 @@ def test_reconstruct_image():
     print("---------------- TEST 12 ----------------------")
     print(f"Original Image and Reconstructed image are similar using 1D FFT: {np.allclose(test_array, reconstructed_image)}")
     print(f"Average difference between orginal image and reconstructed image: {s}")
-    print("----------------------------------------------")
+    
 
 def test_numpyFT_and_personalFT():
-    print("---------------- TEST 13 ----------------------")
-    print(f" Difference between Numpy FFT and our FFT")
-    print("----------------------------------------------")
     fft_image = trans_2d(img, mode=fft)
     fft_image2 = np.fft.fft2(img, fft_image.shape) 
+    difference = np.abs(fft_image - fft_image2)
+    s = np.sum(difference) / (img.shape[0] * img.shape[1])
+    print("---------------- TEST 13 ----------------------")
+    print(f"Average difference between Numpy FFT and Our FFT: {s}")
+    print("----------------------------------------------")
     plt.figure(figsize=(15,5))
     plt.subplot(121), plt.imshow(np.abs(fft_image.real), norm=LogNorm(vmin=5))
     plt.colorbar()
