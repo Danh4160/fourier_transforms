@@ -12,6 +12,7 @@ def dft(vector):
     c = np.exp(-1j * 2 * np.pi * k * n / N)
     return np.dot(vector, c)
 
+
 def dft_inverse(vector):
     N = len(vector)
     n = np.arange(N)
@@ -104,6 +105,7 @@ def find_next_power_2(n):
         n = n & n - 1       
     return n << 1
 
+
 def test_runtime():
     sizes = [5,6,7,8,9,10]
     dft_final = []
@@ -163,6 +165,7 @@ def second_mode_test1(fft_input):
     plt.close()
     return None
 
+
 def second_mode_test2(fft_input):
     # In each row, sort from high frequencies to low frequencies
     # Set to 0 the sorted array from the left meaning that we leave out high frequencies
@@ -187,6 +190,7 @@ def second_mode_test2(fft_input):
     plt.close()
     return None
 
+
 def second_mode_test3(fft_input):
     # In each row, remove percent of low frequencies 
     _, n = fft_input.shape
@@ -206,6 +210,7 @@ def second_mode_test3(fft_input):
         plt.savefig(f'./mode_2_results/test3_{t}_with16threshold.png')
     plt.close()
     return None
+
 
 def second_mode_test4(fft_input):
     # In each row, remove percent of low frequencies and high frequencies
@@ -230,6 +235,7 @@ def second_mode_test4(fft_input):
     plt.close()
     return None
 
+
 def default_mode():
     # Fast Mode where image is converted to its FFT form and displayed
     print("First mode")
@@ -246,6 +252,7 @@ def default_mode():
     plt.show()
     
     return None
+
 
 def second_mode():
     # Denoise an image by applying an FFT
@@ -287,6 +294,7 @@ def second_mode():
 
     return None
 
+
 def third_mode():
     # Compressing and saving image
     print("Third mode")
@@ -322,6 +330,7 @@ def third_mode():
     plt.show()
     return None
 
+
 def fourth_mode():
     # Plotting runtime graphs for report
     print("Fourth mode")
@@ -346,6 +355,7 @@ def fourth_mode():
     plt.savefig("./mode_4_results/runtime.png")
     plt.show()
     return None
+
 
 def test_correctness():
     # Test for differences using FFT
@@ -490,8 +500,6 @@ def test_numpyFT_and_personalFT():
     plt.savefig("./mode_1_results/ComparingPlots.png")
     plt.show()
  
-
-
 
 if __name__ == "__main__":
     # Default values
