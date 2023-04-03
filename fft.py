@@ -498,16 +498,15 @@ if __name__ == "__main__":
     mode = "1"
     image = "moonlanding.png"
 
-
     if len(sys.argv) > 6:
         print("Too many arguments, Exiting...")
         exit()
 
-    if "-m" in sys.argv and "-i" in sys.argv and len(sys.argv) != 6:
+    if "-m" in sys.argv and "-i" in sys.argv and len(sys.argv) != 5:
         print("Missing arguments, Exiting...")
         exit()
 
-    if '-m' not in sys.argv and '-i' not in sys.argv and len(sys.argv) != 2:
+    if '-m' not in sys.argv and '-i' not in sys.argv and len(sys.argv) != 1:
         print("Bad Command, Exiting...")
         exit()
 
