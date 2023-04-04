@@ -1,5 +1,5 @@
 # Command Line tool For Fourier Transforms
-Written by Dan Hosi and Harsh Patel
+Written by Dan Hosi and Harsh Patel using Python 3.8.5
 
 ## How to use the tool
 In the command line, `python fft.py [-m mode] [-i image]` where the argument isdefined as follows: 
@@ -13,6 +13,5 @@ frequencies and then displayed
   - [t] for us developers to run certain tests for our algorithms.
   
 • image (optional): filename of the image we wish to take the DFT of. (Default: moonlanding.png)
-https://github.com/Danh4160/fourier_transforms/blob/main/moonlanding.png
 
 
